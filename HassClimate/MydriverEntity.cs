@@ -1,6 +1,7 @@
 ﻿// two-space indents
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Crestron.DeviceDrivers.EntityModel;
 using Crestron.DeviceDrivers.EntityModel.Data;
 using Crestron.DeviceDrivers.EntityModel.Logging;
@@ -81,10 +82,61 @@ public class MyDriverEntity : ReflectedAttributeDriverEntity, IDisposable
       => vals.TryGetValue(id, out var v) && v.HasValue ? v.Value.GetValue<string>() : null;
 
     static int? GetInt(IDictionary<string, DriverEntityValue?> vals, string id)
-      => vals.TryGetValue(id, out var v) && v.HasValue ? (int?)(long)v.Value.GetValue<long>() : null;
+    {
+        if (!vals.TryGetValue(id, out var raw) || !raw.HasValue)
+            return null;
+
+        var value = raw.Value;
+
+        int? TryConvert<T>()
+        {
+            try
+            {
+                var v = value.GetValue<T>();
+                if (v == null) return null;
+
+                if (v is string s)
+                {
+                    return int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var si)
+                      ? si
+                      : (int?)null;
+                }
+
+                return Convert.ToInt32(v, CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        return
+            TryConvert<long>() ??
+            TryConvert<int>() ??
+            TryConvert<double>() ??
+            TryConvert<decimal>() ??
+            TryConvert<string>();
+    }
 
     static bool? GetBool(IDictionary<string, DriverEntityValue?> vals, string id)
-      => vals.TryGetValue(id, out var v) && v.HasValue ? (bool?)v.Value.GetValue<bool>() : null;
+    {
+        if (!vals.TryGetValue(id, out var raw) || !raw.HasValue)
+            return null;
+
+        var value = raw.Value;
+
+        try { return value.GetValue<bool>(); }
+        catch
+        {
+            try
+            {
+                var s = value.GetValue<string>();
+                if (bool.TryParse(s, out var b)) return b;
+            }
+            catch { }
+            return null;
+        }
+    }
 
     public new void Dispose()
     {

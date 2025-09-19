@@ -1,0 +1,113 @@
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{32B529B3-E5D4-49D7-A194-F11ABACF5BEC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Platform_Crestron_Sample_IP</RootNamespace>
+    <AssemblyName>Platform_Crestron_Sample_IP</AssemblyName>
+    <ProjectTypeGuids>{0B4745B0-194B-4BB6-8E21-E9057CA92300};{4D628B5B-2FBC-4AA6-8C16-197242AEB884};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <PlatformFamilyName>WindowsCE</PlatformFamilyName>
+    <PlatformID>E2BECB1F-8C8C-41ba-B736-9BE7D946A398</PlatformID>
+    <OSVersion>5.0</OSVersion>
+    <DeployDirSuffix>SmartDeviceProject1</DeployDirSuffix>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <NativePlatformName>Windows CE</NativePlatformName>
+    <FormFactorID>
+    </FormFactorID>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowedReferenceRelatedFileExtensions>.allowedReferenceRelatedFileExtensions</AllowedReferenceRelatedFileExtensions>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <FileAlignment>512</FileAlignment>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <GenerateSerializationAssemblies>off</GenerateSerializationAssemblies>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowedReferenceRelatedFileExtensions>.allowedReferenceRelatedFileExtensions</AllowedReferenceRelatedFileExtensions>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <FileAlignment>512</FileAlignment>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <GenerateSerializationAssemblies>off</GenerateSerializationAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Crestron.DeviceDrivers.API">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Crestron.DeviceDrivers.API\lib\Crestron.DeviceDrivers.API.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="RADCommon">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\RADCommon\lib\RADCommon.dll</HintPath>
+    </Reference>
+    <Reference Include="RADDisplay">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\RADDisplay\lib\RADDisplay.dll</HintPath>
+    </Reference>
+    <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpCustomAttributesInterface.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SimplSharpPro, Version=1.5.3.17, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpPro.exe</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SampleDeviceFactoryStatusEventArgs.cs" />
+    <Compile Include="SampleGatewayDeviceFactory.cs" />
+    <Compile Include="SampleGatewayProtocol.cs" />
+    <Compile Include="SampleGatewayTcp.cs" />
+    <Compile Include="SampleGatewayTcpTransport.cs" />
+    <EmbeddedResource Include="DriverData.json" />
+    <None Include="IncludeInPkg\Translations\en-US.json" />
+    <None Include="Properties\ControlSystem.cfg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\SamplePlatformCommon.csproj">
+      <Project>{B9A249A8-53B8-4255-893E-D57C648E209F}</Project>
+      <Name>SamplePlatformCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PairedDevices\Extension\PairedExtensionDevice_Crestron_Sample.csproj">
+      <Project>{7AC4DE14-DCF5-45EB-A824-F775855B8D4C}</Project>
+      <Name>PairedExtensionDevice_Crestron_Sample</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PairedDevices\Projector\PairedDevice_Crestron_Sample.csproj">
+      <Project>{30110AA9-7886-44B6-8E55-5D2A85C28E46}</Project>
+      <Name>PairedDevice_Crestron_Sample</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="IncludeInPkg\UiDefinitions\PairedExtensionUi.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>XCOPY "$(ProjectDir)IncludeInPkg" "$(TargetDir)IncludeInPkg\" /s /y</PostBuildEvent>
+  </PropertyGroup>
+</Project>

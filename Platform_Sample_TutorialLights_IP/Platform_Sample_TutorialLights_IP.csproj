@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>$(TargetName)</RootNamespace>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <CrestronSDK>C:\ProgramData\Crestron\SDK</CrestronSDK>
+    <!-- Ensures compatibility with VS 2008, can be removed for 4-series only development -->
+    <LangVersion>3</LangVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>false</Deterministic>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+  </PropertyGroup>
+  <!-- Properties for Debug configurations -->
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <!-- Properties for Release configurations -->
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugType>portable</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Crestron.DeviceDrivers.SDK.dll">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Crestron.DeviceDrivers.SDK\lib\Crestron.DeviceDrivers.SDK.dll</HintPath>
+    </Reference>
+    <Reference Include="Crestron.DeviceDrivers.EntityModel.dll">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\packages\Crestron.DeviceDrivers.EntityModel\lib\Crestron.DeviceDrivers.EntityModel.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(TargetName).json" />
+  </ItemGroup>
+  <Target Name="AfterBuild">
+    <Exec Command="C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe &quot;$(SolutionDir)\ci\Powershell\ValidateAndSignDll.ps1&quot; &quot;$(TargetDir)$(AssemblyName).dll&quot;" />
+    <Exec Command="&quot;$(SolutionDir)\packages\ManifestUtil\lib\ManifestUtil.exe&quot; &quot;$(TargetDir)" />
+  </Target>
+</Project>

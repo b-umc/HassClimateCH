@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uidefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://prd-use-rad-assets.azurewebsites.net/ExtensionsSchemaDefinition.xsd">
+  <version ver="2.0" />
+
+  <tile icon="#icClimate" status="{climate:currentTemperature}°" action="show:Main" navigation="show:Main" showinhomepage="#true" showinroompage="#true" />
+
+  <layouts>
+    <layout id="Main" isdefaultlayout="#true">
+      <controls>
+        <textdisplay id="Header" title="{climate:friendlyName}" line1label="^CurrentTemperatureLabel" line1value="{climate:currentTemperature}°" line2label="^TargetTemperatureLabel" line2value="{climate:targetTemperature}°" />
+        <textdisplay id="Mode" title="^ModeTitle" line1label="^ModeLabel" line1value="{climate:hvacMode}" line2label="^ActionLabel" line2value="{climate:hvacAction}" />
+        <textdisplay id="Humidity" title="^HumidityTitle" line1label="^HumidityLabel" line1value="{climate:humidity}%" />
+        <button id="Decrease" label="^DecreaseButton" action="command:climate:decreaseSetpoint" />
+        <button id="Increase" label="^IncreaseButton" action="command:climate:increaseSetpoint" />
+        <button id="Heat" label="^HeatButton" action="command:climate:setHvacMode" parameters="heat" />
+        <button id="Cool" label="^CoolButton" action="command:climate:setHvacMode" parameters="cool" />
+        <button id="Auto" label="^AutoButton" action="command:climate:setHvacMode" parameters="auto" />
+        <button id="Off" label="^OffButton" action="command:climate:setHvacMode" parameters="off" />
+      </controls>
+    </layout>
+  </layouts>
+
+  <alerts>
+  </alerts>
+</uidefinition>

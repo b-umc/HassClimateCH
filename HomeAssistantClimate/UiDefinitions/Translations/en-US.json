@@ -1,0 +1,15 @@
+{
+  "CurrentTemperatureLabel": "Current",
+  "TargetTemperatureLabel": "Target",
+  "ModeTitle": "System",
+  "ModeLabel": "Mode",
+  "ActionLabel": "Action",
+  "HumidityTitle": "Humidity",
+  "HumidityLabel": "Relative",
+  "DecreaseButton": "Lower",
+  "IncreaseButton": "Raise",
+  "HeatButton": "Heat",
+  "CoolButton": "Cool",
+  "AutoButton": "Auto",
+  "OffButton": "Off"
+}

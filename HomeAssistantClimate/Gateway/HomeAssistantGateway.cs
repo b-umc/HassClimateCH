@@ -16,7 +16,7 @@ namespace HomeAssistantClimate.Gateway
         private readonly Uri _webSocketUri;
         private readonly string _token;
         private readonly ConcurrentDictionary<int, TaskCompletionSource<JToken>> _pendingRequests = new ConcurrentDictionary<int, TaskCompletionSource<JToken>>();
-        private readonly ConcurrentDictionary<string, ClimateDeviceState> _knownThermostats = new ConcurrentDictionary<string, ClimateDeviceState>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, ClimateDeviceState> _knownClimateDevices = new ConcurrentDictionary<string, ClimateDeviceState>(StringComparer.OrdinalIgnoreCase);
         private readonly SemaphoreSlim _sendLock = new SemaphoreSlim(1, 1);
 
         private ClientWebSocket _client;
@@ -32,9 +32,9 @@ namespace HomeAssistantClimate.Gateway
         }
 
         public event EventHandler<bool> ConnectionStateChanged;
-        public event EventHandler<ThermostatDiscoveredEventArgs> ThermostatDiscovered;
-        public event EventHandler<ThermostatUpdatedEventArgs> ThermostatUpdated;
-        public event EventHandler<ThermostatRemovedEventArgs> ThermostatRemoved;
+        public event EventHandler<ClimateDeviceDiscoveredEventArgs> ClimateDeviceDiscovered;
+        public event EventHandler<ClimateDeviceUpdatedEventArgs> ClimateDeviceUpdated;
+        public event EventHandler<ClimateDeviceRemovedEventArgs> ClimateDeviceRemoved;
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -82,7 +82,7 @@ namespace HomeAssistantClimate.Gateway
                 return;
             }
 
-            await SendServiceCommandAsync(entityId, "set_temperature", data, cancellationToken).ConfigureAwait(false);
+            await SendServiceCommandAsync("climate", entityId, "set_temperature", data, cancellationToken).ConfigureAwait(false);
         }
 
         public Task SetHvacModeAsync(string entityId, string mode, CancellationToken cancellationToken)
@@ -92,7 +92,7 @@ namespace HomeAssistantClimate.Gateway
                 { "hvac_mode", mode }
             };
 
-            return SendServiceCommandAsync(entityId, "set_hvac_mode", data, cancellationToken);
+            return SendServiceCommandAsync("climate", entityId, "set_hvac_mode", data, cancellationToken);
         }
 
         public Task SetPresetModeAsync(string entityId, string preset, CancellationToken cancellationToken)
@@ -102,7 +102,7 @@ namespace HomeAssistantClimate.Gateway
                 { "preset_mode", preset }
             };
 
-            return SendServiceCommandAsync(entityId, "set_preset_mode", data, cancellationToken);
+            return SendServiceCommandAsync("climate", entityId, "set_preset_mode", data, cancellationToken);
         }
 
         public Task SetFanModeAsync(string entityId, string mode, CancellationToken cancellationToken)
@@ -112,7 +112,7 @@ namespace HomeAssistantClimate.Gateway
                 { "fan_mode", mode }
             };
 
-            return SendServiceCommandAsync(entityId, "set_fan_mode", data, cancellationToken);
+            return SendServiceCommandAsync("climate", entityId, "set_fan_mode", data, cancellationToken);
         }
 
         public void Dispose()
@@ -133,7 +133,7 @@ namespace HomeAssistantClimate.Gateway
         {
             _internalTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            _knownThermostats.Clear();
+            _knownClimateDevices.Clear();
 
             _client?.Dispose();
             _client = new ClientWebSocket();
@@ -266,9 +266,9 @@ namespace HomeAssistantClimate.Gateway
             var newState = data.Value<JObject>("new_state");
             if (newState == null)
             {
-                if (_knownThermostats.TryRemove(entityId, out _))
+                if (_knownClimateDevices.TryRemove(entityId, out _))
                 {
-                    ThermostatRemoved?.Invoke(this, new ThermostatRemovedEventArgs(entityId));
+                    ClimateDeviceRemoved?.Invoke(this, new ClimateDeviceRemovedEventArgs(entityId));
                 }
 
                 return;
@@ -280,16 +280,16 @@ namespace HomeAssistantClimate.Gateway
                 return;
             }
 
-            var isNew = !_knownThermostats.ContainsKey(entityId);
-            _knownThermostats[entityId] = parsedState;
+            var isNew = !_knownClimateDevices.ContainsKey(entityId);
+            _knownClimateDevices[entityId] = parsedState;
 
             if (isNew)
             {
-                ThermostatDiscovered?.Invoke(this, new ThermostatDiscoveredEventArgs(entityId, parsedState.FriendlyName, parsedState.Model, parsedState));
+                ClimateDeviceDiscovered?.Invoke(this, new ClimateDeviceDiscoveredEventArgs(entityId, parsedState.FriendlyName, parsedState.Model, parsedState));
             }
             else
             {
-                ThermostatUpdated?.Invoke(this, new ThermostatUpdatedEventArgs(entityId, parsedState));
+                ClimateDeviceUpdated?.Invoke(this, new ClimateDeviceUpdatedEventArgs(entityId, parsedState));
             }
         }
 
@@ -303,13 +303,13 @@ namespace HomeAssistantClimate.Gateway
                     continue;
                 }
 
-                if (_knownThermostats.TryAdd(state.EntityId, state))
+                if (_knownClimateDevices.TryAdd(state.EntityId, state))
                 {
-                    ThermostatDiscovered?.Invoke(this, new ThermostatDiscoveredEventArgs(state.EntityId, state.FriendlyName, state.Model, state));
+                    ClimateDeviceDiscovered?.Invoke(this, new ClimateDeviceDiscoveredEventArgs(state.EntityId, state.FriendlyName, state.Model, state));
                 }
                 else
                 {
-                    ThermostatUpdated?.Invoke(this, new ThermostatUpdatedEventArgs(state.EntityId, state));
+                    ClimateDeviceUpdated?.Invoke(this, new ClimateDeviceUpdatedEventArgs(state.EntityId, state));
                 }
             }
         }
@@ -419,10 +419,10 @@ namespace HomeAssistantClimate.Gateway
             }
         }
 
-        private async Task SendServiceCommandAsync(string entityId, string service, IDictionary<string, JToken> serviceData, CancellationToken cancellationToken)
+        private async Task SendServiceCommandAsync(string domain, string entityId, string service, IDictionary<string, JToken> serviceData, CancellationToken cancellationToken)
         {
             var id = GetMessageId();
-            var message = HomeAssistantMessageFactory.CreateCallServiceMessage(id, entityId, service, serviceData);
+            var message = HomeAssistantMessageFactory.CreateCallServiceMessage(id, domain, entityId, service, serviceData);
             await SendAsync(message, cancellationToken).ConfigureAwait(false);
         }
 

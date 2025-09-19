@@ -67,7 +67,7 @@
   "Dependencies": [
     {
       "AssemblyName": "HomeAssistantClimate",
-      "DriverData": "HomeAssistantThermostat.json"
+      "DriverData": "HomeAssistantClimateDevice.json"
     }
   ]
 }

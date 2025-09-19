@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Crestron.DeviceDrivers.EntityModel.Data;
@@ -17,7 +16,7 @@ namespace HomeAssistantClimate
     public class HomeAssistantPlatform : ReflectedAttributeDriverEntity
     {
         private readonly object _syncRoot = new object();
-        private readonly IDictionary<string, HomeAssistantThermostat> _thermostats = new Dictionary<string, HomeAssistantThermostat>();
+        private readonly IDictionary<string, HomeAssistantClimateDevice> _climateDevices = new Dictionary<string, HomeAssistantClimateDevice>();
         private readonly IDictionary<string, PlatformManagedDevice> _managedDevices = new Dictionary<string, PlatformManagedDevice>();
 
         private HomeAssistantGateway _gateway;
@@ -147,9 +146,9 @@ namespace HomeAssistantClimate
             _cts = new CancellationTokenSource();
 
             _gateway = new HomeAssistantGateway(uriBuilder.Uri, _token);
-            _gateway.ThermostatDiscovered += GatewayOnThermostatDiscovered;
-            _gateway.ThermostatRemoved += GatewayOnThermostatRemoved;
-            _gateway.ThermostatUpdated += GatewayOnThermostatUpdated;
+            _gateway.ClimateDeviceDiscovered += GatewayOnClimateDeviceDiscovered;
+            _gateway.ClimateDeviceRemoved += GatewayOnClimateDeviceRemoved;
+            _gateway.ClimateDeviceUpdated += GatewayOnClimateDeviceUpdated;
             _gateway.ConnectionStateChanged += GatewayOnConnectionStateChanged;
 
             Task.Run(() => _gateway.StartAsync(_cts.Token));
@@ -161,9 +160,9 @@ namespace HomeAssistantClimate
 
             if (_gateway != null)
             {
-                _gateway.ThermostatDiscovered -= GatewayOnThermostatDiscovered;
-                _gateway.ThermostatRemoved -= GatewayOnThermostatRemoved;
-                _gateway.ThermostatUpdated -= GatewayOnThermostatUpdated;
+                _gateway.ClimateDeviceDiscovered -= GatewayOnClimateDeviceDiscovered;
+                _gateway.ClimateDeviceRemoved -= GatewayOnClimateDeviceRemoved;
+                _gateway.ClimateDeviceUpdated -= GatewayOnClimateDeviceUpdated;
                 _gateway.ConnectionStateChanged -= GatewayOnConnectionStateChanged;
                 _gateway.Dispose();
                 _gateway = null;
@@ -178,19 +177,19 @@ namespace HomeAssistantClimate
 
             lock (_syncRoot)
             {
-                var controllerIds = new List<string>(_thermostats.Keys);
+                var controllerIds = new List<string>(_climateDevices.Keys);
 
                 foreach (var id in controllerIds)
                 {
                     RemoveSubController(id);
                 }
 
-                foreach (var thermostat in _thermostats.Values)
+                foreach (var device in _climateDevices.Values)
                 {
-                    thermostat.Dispose();
+                    device.Dispose();
                 }
 
-                _thermostats.Clear();
+                _climateDevices.Clear();
                 _managedDevices.Clear();
 
                 NotifyPropertyChanged("platform:managedDevices", CreateValueForEntries(_managedDevices));
@@ -203,36 +202,36 @@ namespace HomeAssistantClimate
 
             lock (_syncRoot)
             {
-                foreach (var thermostat in _thermostats.Values)
+                foreach (var device in _climateDevices.Values)
                 {
-                    thermostat.SetConnectionState(e);
+                    device.SetConnectionState(e);
                 }
             }
         }
 
-        private void GatewayOnThermostatDiscovered(object sender, ThermostatDiscoveredEventArgs e)
+        private void GatewayOnClimateDeviceDiscovered(object sender, ClimateDeviceDiscoveredEventArgs e)
         {
             lock (_syncRoot)
             {
-                if (_thermostats.TryGetValue(e.EntityId, out var existing))
+                if (_climateDevices.TryGetValue(e.EntityId, out var existing))
                 {
                     existing.SetConnectionState(_isConnected);
                     existing.UpdateFromState(e.State);
                     return;
                 }
 
-                var thermostat = new HomeAssistantThermostat(e.EntityId, e.FriendlyName, _gateway);
-                thermostat.SetConnectionState(_isConnected);
-                thermostat.UpdateFromState(e.State);
+                var device = new HomeAssistantClimateDevice(e.EntityId, e.FriendlyName, _gateway);
+                device.SetConnectionState(_isConnected);
+                device.UpdateFromState(e.State);
 
-                _thermostats[e.EntityId] = thermostat;
+                _climateDevices[e.EntityId] = device;
 
                 var managedDevice = new PlatformManagedDevice(DeviceUxCategory.Hvac, e.FriendlyName, "Home Assistant", e.Model, e.EntityId);
                 _managedDevices[e.EntityId] = managedDevice;
 
                 var subControllers = new[]
                 {
-                    new ConfigurableDriverEntity(thermostat.ControllerId, thermostat, null)
+                    new ConfigurableDriverEntity(device.ControllerId, device, null)
                 };
 
                 UpdateSubControllers(subControllers, null);
@@ -241,25 +240,25 @@ namespace HomeAssistantClimate
             }
         }
 
-        private void GatewayOnThermostatUpdated(object sender, ThermostatUpdatedEventArgs e)
+        private void GatewayOnClimateDeviceUpdated(object sender, ClimateDeviceUpdatedEventArgs e)
         {
             lock (_syncRoot)
             {
-                if (_thermostats.TryGetValue(e.EntityId, out var thermostat))
+                if (_climateDevices.TryGetValue(e.EntityId, out var device))
                 {
-                    thermostat.UpdateFromState(e.State);
+                    device.UpdateFromState(e.State);
                 }
             }
         }
 
-        private void GatewayOnThermostatRemoved(object sender, ThermostatRemovedEventArgs e)
+        private void GatewayOnClimateDeviceRemoved(object sender, ClimateDeviceRemovedEventArgs e)
         {
             lock (_syncRoot)
             {
-                if (_thermostats.Remove(e.EntityId, out var thermostat))
+                if (_climateDevices.Remove(e.EntityId, out var device))
                 {
-                    thermostat.Dispose();
-                    RemoveSubController(thermostat.ControllerId);
+                    device.Dispose();
+                    RemoveSubController(device.ControllerId);
                 }
 
                 if (_managedDevices.Remove(e.EntityId))

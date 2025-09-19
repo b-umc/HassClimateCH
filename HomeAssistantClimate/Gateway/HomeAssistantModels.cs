@@ -19,9 +19,9 @@ namespace HomeAssistantClimate.Gateway
         public DateTimeOffset LastUpdated { get; set; }
     }
 
-    public sealed class ThermostatDiscoveredEventArgs : EventArgs
+    public sealed class ClimateDeviceDiscoveredEventArgs : EventArgs
     {
-        public ThermostatDiscoveredEventArgs(string entityId, string friendlyName, string model, ClimateDeviceState state)
+        public ClimateDeviceDiscoveredEventArgs(string entityId, string friendlyName, string model, ClimateDeviceState state)
         {
             EntityId = entityId;
             FriendlyName = friendlyName;
@@ -35,9 +35,9 @@ namespace HomeAssistantClimate.Gateway
         public ClimateDeviceState State { get; }
     }
 
-    public sealed class ThermostatUpdatedEventArgs : EventArgs
+    public sealed class ClimateDeviceUpdatedEventArgs : EventArgs
     {
-        public ThermostatUpdatedEventArgs(string entityId, ClimateDeviceState state)
+        public ClimateDeviceUpdatedEventArgs(string entityId, ClimateDeviceState state)
         {
             EntityId = entityId;
             State = state;
@@ -47,9 +47,9 @@ namespace HomeAssistantClimate.Gateway
         public ClimateDeviceState State { get; }
     }
 
-    public sealed class ThermostatRemovedEventArgs : EventArgs
+    public sealed class ClimateDeviceRemovedEventArgs : EventArgs
     {
-        public ThermostatRemovedEventArgs(string entityId)
+        public ClimateDeviceRemovedEventArgs(string entityId)
         {
             EntityId = entityId;
         }

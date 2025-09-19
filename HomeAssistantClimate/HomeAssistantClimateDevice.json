@@ -5,12 +5,12 @@
     "DeviceType": "Thermostat",
     "Manufacturer": "Home Assistant",
     "BaseModel": "HA Climate",
-    "DriverIdentifier": "HomeAssistantThermostat",
+    "DriverIdentifier": "HomeAssistantClimateDevice",
     "SupportedSeries": [ "Crestron Home" ],
     "DriverVersion": "1.0.0",
     "VersionDate": "2024-05-01 00:00:00.000"
   },
   "UiDefinition": {
-    "Default": "UiDefinitions/ThermostatUi.xml"
+    "Default": "UiDefinitions/ClimateDeviceUi.xml"
   }
 }

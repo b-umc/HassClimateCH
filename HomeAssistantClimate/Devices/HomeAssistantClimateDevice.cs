@@ -9,7 +9,7 @@ using HomeAssistantClimate.Gateway;
 
 namespace HomeAssistantClimate.Devices
 {
-    public sealed class HomeAssistantThermostat : ReflectedAttributeDriverEntity, IDisposable
+    public sealed class HomeAssistantClimateDevice : ReflectedAttributeDriverEntity, IDisposable
     {
         private readonly string _friendlyName;
         private readonly HomeAssistantGateway _gateway;
@@ -25,44 +25,44 @@ namespace HomeAssistantClimate.Devices
         private IReadOnlyList<string> _availableModes = Array.Empty<string>();
         private bool _isConnected;
 
-        public HomeAssistantThermostat(string entityId, string friendlyName, HomeAssistantGateway gateway)
+        public HomeAssistantClimateDevice(string entityId, string friendlyName, HomeAssistantGateway gateway)
             : base(entityId)
         {
             _friendlyName = friendlyName;
             _gateway = gateway;
         }
 
-        [EntityProperty(Id = "thermostat:friendlyName", Type = DriverEntityValueType.String)]
+        [EntityProperty(Id = "climate:friendlyName", Type = DriverEntityValueType.String)]
         public string FriendlyName => _friendlyName;
 
-        [EntityProperty(Id = "thermostat:isConnected", Type = DriverEntityValueType.Bool)]
+        [EntityProperty(Id = "climate:isConnected", Type = DriverEntityValueType.Bool)]
         public bool IsConnected => _isConnected;
 
-        [EntityProperty(Id = "thermostat:currentTemperature", Type = DriverEntityValueType.Double)]
+        [EntityProperty(Id = "climate:currentTemperature", Type = DriverEntityValueType.Double)]
         public double? CurrentTemperature => _currentTemp;
 
-        [EntityProperty(Id = "thermostat:targetTemperature", Type = DriverEntityValueType.Double)]
+        [EntityProperty(Id = "climate:targetTemperature", Type = DriverEntityValueType.Double)]
         public double? TargetTemperature => _targetTemp;
 
-        [EntityProperty(Id = "thermostat:targetTempLow", Type = DriverEntityValueType.Double)]
+        [EntityProperty(Id = "climate:targetTempLow", Type = DriverEntityValueType.Double)]
         public double? TargetTemperatureLow => _targetLow;
 
-        [EntityProperty(Id = "thermostat:targetTempHigh", Type = DriverEntityValueType.Double)]
+        [EntityProperty(Id = "climate:targetTempHigh", Type = DriverEntityValueType.Double)]
         public double? TargetTemperatureHigh => _targetHigh;
 
-        [EntityProperty(Id = "thermostat:humidity", Type = DriverEntityValueType.Double)]
+        [EntityProperty(Id = "climate:humidity", Type = DriverEntityValueType.Double)]
         public double? Humidity => _humidity;
 
-        [EntityProperty(Id = "thermostat:hvacMode", Type = DriverEntityValueType.String)]
+        [EntityProperty(Id = "climate:hvacMode", Type = DriverEntityValueType.String)]
         public string HvacMode => _hvacMode;
 
-        [EntityProperty(Id = "thermostat:hvacAction", Type = DriverEntityValueType.String)]
+        [EntityProperty(Id = "climate:hvacAction", Type = DriverEntityValueType.String)]
         public string Action => _action;
 
-        [EntityProperty(Id = "thermostat:availableHvacModes", Type = DriverEntityValueType.String)]
+        [EntityProperty(Id = "climate:availableHvacModes", Type = DriverEntityValueType.String)]
         public string AvailableHvacModes => string.Join(", ", _availableModes ?? Array.Empty<string>());
 
-        [EntityCommand(Id = "thermostat:setTargetTemperature")]
+        [EntityCommand(Id = "climate:setTargetTemperature")]
         public void SetTargetTemperature(DriverEntityValue value)
         {
             if (value == null || !value.HasValue)
@@ -74,7 +74,7 @@ namespace HomeAssistantClimate.Devices
             _ = Task.Run(() => _gateway.SetTargetTemperatureAsync(ControllerId, newTemp, null, null, CancellationToken.None));
         }
 
-        [EntityCommand(Id = "thermostat:setTargetTempLow")]
+        [EntityCommand(Id = "climate:setTargetTempLow")]
         public void SetTargetTempLow(DriverEntityValue value)
         {
             if (value == null || !value.HasValue)
@@ -86,7 +86,7 @@ namespace HomeAssistantClimate.Devices
             _ = Task.Run(() => _gateway.SetTargetTemperatureAsync(ControllerId, null, low, _targetHigh, CancellationToken.None));
         }
 
-        [EntityCommand(Id = "thermostat:setTargetTempHigh")]
+        [EntityCommand(Id = "climate:setTargetTempHigh")]
         public void SetTargetTempHigh(DriverEntityValue value)
         {
             if (value == null || !value.HasValue)
@@ -98,7 +98,7 @@ namespace HomeAssistantClimate.Devices
             _ = Task.Run(() => _gateway.SetTargetTemperatureAsync(ControllerId, null, _targetLow, high, CancellationToken.None));
         }
 
-        [EntityCommand(Id = "thermostat:setHvacMode")]
+        [EntityCommand(Id = "climate:setHvacMode")]
         public void SetHvacMode(DriverEntityValue modeValue)
         {
             if (modeValue == null || !modeValue.HasValue)
@@ -110,7 +110,7 @@ namespace HomeAssistantClimate.Devices
             _ = Task.Run(() => _gateway.SetHvacModeAsync(ControllerId, mode, CancellationToken.None));
         }
 
-        [EntityCommand(Id = "thermostat:setPresetMode")]
+        [EntityCommand(Id = "climate:setPresetMode")]
         public void SetPresetMode(DriverEntityValue presetValue)
         {
             if (presetValue == null || !presetValue.HasValue)
@@ -122,7 +122,7 @@ namespace HomeAssistantClimate.Devices
             _ = Task.Run(() => _gateway.SetPresetModeAsync(ControllerId, preset, CancellationToken.None));
         }
 
-        [EntityCommand(Id = "thermostat:setFanMode")]
+        [EntityCommand(Id = "climate:setFanMode")]
         public void SetFanMode(DriverEntityValue modeValue)
         {
             if (modeValue == null || !modeValue.HasValue)
@@ -134,14 +134,14 @@ namespace HomeAssistantClimate.Devices
             _ = Task.Run(() => _gateway.SetFanModeAsync(ControllerId, mode, CancellationToken.None));
         }
 
-        [EntityCommand(Id = "thermostat:increaseSetpoint")]
+        [EntityCommand(Id = "climate:increaseSetpoint")]
         public void IncreaseSetpoint()
         {
             var newTarget = (_targetTemp ?? _currentTemp ?? 70.0) + 0.5;
             _ = Task.Run(() => _gateway.SetTargetTemperatureAsync(ControllerId, newTarget, null, null, CancellationToken.None));
         }
 
-        [EntityCommand(Id = "thermostat:decreaseSetpoint")]
+        [EntityCommand(Id = "climate:decreaseSetpoint")]
         public void DecreaseSetpoint()
         {
             var newTarget = (_targetTemp ?? _currentTemp ?? 70.0) - 0.5;
@@ -150,7 +150,7 @@ namespace HomeAssistantClimate.Devices
 
         public void SetConnectionState(bool connected)
         {
-            UpdateProperty(ref _isConnected, connected, "thermostat:isConnected");
+            UpdateProperty(ref _isConnected, connected, "climate:isConnected");
         }
 
         public void UpdateFromState(ClimateDeviceState state)
@@ -160,13 +160,13 @@ namespace HomeAssistantClimate.Devices
                 return;
             }
 
-            UpdateProperty(ref _currentTemp, state.CurrentTemperature, "thermostat:currentTemperature");
-            UpdateProperty(ref _targetTemp, state.TargetTemperature, "thermostat:targetTemperature");
-            UpdateProperty(ref _targetLow, state.TargetTemperatureLow, "thermostat:targetTempLow");
-            UpdateProperty(ref _targetHigh, state.TargetTemperatureHigh, "thermostat:targetTempHigh");
-            UpdateProperty(ref _humidity, state.Humidity, "thermostat:humidity");
-            UpdateProperty(ref _hvacMode, state.HvacMode, "thermostat:hvacMode");
-            UpdateProperty(ref _action, state.Action, "thermostat:hvacAction");
+            UpdateProperty(ref _currentTemp, state.CurrentTemperature, "climate:currentTemperature");
+            UpdateProperty(ref _targetTemp, state.TargetTemperature, "climate:targetTemperature");
+            UpdateProperty(ref _targetLow, state.TargetTemperatureLow, "climate:targetTempLow");
+            UpdateProperty(ref _targetHigh, state.TargetTemperatureHigh, "climate:targetTempHigh");
+            UpdateProperty(ref _humidity, state.Humidity, "climate:humidity");
+            UpdateProperty(ref _hvacMode, state.HvacMode, "climate:hvacMode");
+            UpdateProperty(ref _action, state.Action, "climate:hvacAction");
             UpdateModes(state.HvacModes);
         }
 
@@ -182,7 +182,7 @@ namespace HomeAssistantClimate.Devices
                 if (_availableModes == null || !AreModesEqual(_availableModes, modes))
                 {
                     _availableModes = modes;
-                    NotifyPropertyChanged("thermostat:availableHvacModes", CreateValueForObject(AvailableHvacModes));
+                    NotifyPropertyChanged("climate:availableHvacModes", CreateValueForObject(AvailableHvacModes));
                 }
             }
         }

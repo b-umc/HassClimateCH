@@ -34,13 +34,13 @@ namespace HomeAssistantClimate.Gateway
             };
         }
 
-        public static JObject CreateCallServiceMessage(int id, string entityId, string service, IDictionary<string, JToken> data)
+        public static JObject CreateCallServiceMessage(int id, string domain, string entityId, string service, IDictionary<string, JToken> data)
         {
             var payload = new JObject
             {
                 ["id"] = id,
                 ["type"] = "call_service",
-                ["domain"] = "climate",
+                ["domain"] = domain,
                 ["service"] = service,
                 ["target"] = new JObject { ["entity_id"] = entityId },
                 ["service_data"] = new JObject()

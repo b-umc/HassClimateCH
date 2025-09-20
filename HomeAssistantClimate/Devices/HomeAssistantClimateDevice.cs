@@ -63,74 +63,68 @@ namespace HomeAssistantClimate.Devices
         public string AvailableHvacModes => string.Join(", ", _availableModes ?? Array.Empty<string>());
 
         [EntityCommand(Id = "climate:setTargetTemperature")]
-        public void SetTargetTemperature(DriverEntityValue value)
+        public void SetTargetTemperature(DriverEntityValue? value)
         {
-            if (value == null || !value.HasValue)
+            if (!TryGetDouble(value, out var newTemp))
             {
                 return;
             }
 
-            var newTemp = Convert.ToDouble(value.GetValue<object>());
             _ = Task.Run(() => _gateway.SetTargetTemperatureAsync(ControllerId, newTemp, null, null, CancellationToken.None));
         }
 
         [EntityCommand(Id = "climate:setTargetTempLow")]
-        public void SetTargetTempLow(DriverEntityValue value)
+        public void SetTargetTempLow(DriverEntityValue? value)
         {
-            if (value == null || !value.HasValue)
+            if (!TryGetDouble(value, out var low))
             {
                 return;
             }
 
-            var low = Convert.ToDouble(value.GetValue<object>());
             _ = Task.Run(() => _gateway.SetTargetTemperatureAsync(ControllerId, null, low, _targetHigh, CancellationToken.None));
         }
 
         [EntityCommand(Id = "climate:setTargetTempHigh")]
-        public void SetTargetTempHigh(DriverEntityValue value)
+        public void SetTargetTempHigh(DriverEntityValue? value)
         {
-            if (value == null || !value.HasValue)
+            if (!TryGetDouble(value, out var high))
             {
                 return;
             }
 
-            var high = Convert.ToDouble(value.GetValue<object>());
             _ = Task.Run(() => _gateway.SetTargetTemperatureAsync(ControllerId, null, _targetLow, high, CancellationToken.None));
         }
 
         [EntityCommand(Id = "climate:setHvacMode")]
-        public void SetHvacMode(DriverEntityValue modeValue)
+        public void SetHvacMode(DriverEntityValue? modeValue)
         {
-            if (modeValue == null || !modeValue.HasValue)
+            if (!TryGetString(modeValue, out var mode))
             {
                 return;
             }
 
-            var mode = Convert.ToString(modeValue.GetValue<object>());
             _ = Task.Run(() => _gateway.SetHvacModeAsync(ControllerId, mode, CancellationToken.None));
         }
 
         [EntityCommand(Id = "climate:setPresetMode")]
-        public void SetPresetMode(DriverEntityValue presetValue)
+        public void SetPresetMode(DriverEntityValue? presetValue)
         {
-            if (presetValue == null || !presetValue.HasValue)
+            if (!TryGetString(presetValue, out var preset))
             {
                 return;
             }
 
-            var preset = Convert.ToString(presetValue.GetValue<object>());
             _ = Task.Run(() => _gateway.SetPresetModeAsync(ControllerId, preset, CancellationToken.None));
         }
 
         [EntityCommand(Id = "climate:setFanMode")]
-        public void SetFanMode(DriverEntityValue modeValue)
+        public void SetFanMode(DriverEntityValue? modeValue)
         {
-            if (modeValue == null || !modeValue.HasValue)
+            if (!TryGetString(modeValue, out var mode))
             {
                 return;
             }
 
-            var mode = Convert.ToString(modeValue.GetValue<object>());
             _ = Task.Run(() => _gateway.SetFanModeAsync(ControllerId, mode, CancellationToken.None));
         }
 
@@ -224,6 +218,84 @@ namespace HomeAssistantClimate.Devices
 
             field = value;
             NotifyPropertyChanged(propertyId, CreateValueForObject(value));
+        }
+
+        private static bool TryGetDouble(DriverEntityValue? value, out double result)
+        {
+            if (value == null)
+            {
+                result = default;
+                return false;
+            }
+
+            var raw = value.GetValue<object>();
+            if (raw == null)
+            {
+                result = default;
+                return false;
+            }
+
+            try
+            {
+                result = Convert.ToDouble(raw);
+                return true;
+            }
+            catch (FormatException)
+            {
+            }
+            catch (InvalidCastException)
+            {
+            }
+            catch (OverflowException)
+            {
+            }
+
+            result = default;
+            return false;
+        }
+
+        private static bool TryGetString(DriverEntityValue? value, out string result)
+        {
+            if (value == null)
+            {
+                result = string.Empty;
+                return false;
+            }
+
+            var raw = value.GetValue<object>();
+            if (raw == null)
+            {
+                result = string.Empty;
+                return false;
+            }
+
+            if (raw is string str)
+            {
+                result = str;
+                return true;
+            }
+
+            try
+            {
+                var converted = Convert.ToString(raw);
+                if (converted == null)
+                {
+                    result = string.Empty;
+                    return false;
+                }
+
+                result = converted;
+                return true;
+            }
+            catch (FormatException)
+            {
+            }
+            catch (InvalidCastException)
+            {
+            }
+
+            result = string.Empty;
+            return false;
         }
 
         public void Dispose()

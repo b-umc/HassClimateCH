@@ -80,18 +80,17 @@ namespace HomeAssistantClimate
 
             var errors = new Dictionary<string, string>();
 
-            if (values.TryGetValue("_Host_", out var hostValue) && hostValue.HasValue)
+            if (values.TryGetValue("_Host_", out var hostValue) && TryGetString(hostValue, out var host))
             {
-                _host = hostValue.Value.GetValue<string>();
+                _host = host;
             }
             else if (string.IsNullOrWhiteSpace(_host))
             {
                 errors["_Host_"] = "Host is required";
             }
 
-            if (values.TryGetValue("_Port_", out var portValue) && portValue.HasValue)
+            if (values.TryGetValue("_Port_", out var portValue) && TryGetUInt16(portValue, out var parsedPort))
             {
-                var parsedPort = (ushort)portValue.Value.GetValue<long>();
                 if (parsedPort == 0)
                 {
                     errors["_Port_"] = "Port must be greater than 0";
@@ -102,14 +101,14 @@ namespace HomeAssistantClimate
                 }
             }
 
-            if (values.TryGetValue("UseSsl", out var sslValue) && sslValue.HasValue)
+            if (values.TryGetValue("UseSsl", out var sslValue) && TryGetBool(sslValue, out var useSsl))
             {
-                _useSsl = sslValue.Value.GetValue<bool>();
+                _useSsl = useSsl;
             }
 
-            if (values.TryGetValue("AccessToken", out var tokenValue) && tokenValue.HasValue)
+            if (values.TryGetValue("AccessToken", out var tokenValue) && TryGetString(tokenValue, out var token))
             {
-                _token = tokenValue.Value.GetValue<string>();
+                _token = token;
             }
 
             if (string.IsNullOrWhiteSpace(_token))
@@ -194,6 +193,115 @@ namespace HomeAssistantClimate
 
                 NotifyPropertyChanged("platform:managedDevices", CreateValueForEntries(_managedDevices));
             }
+        }
+
+        private static bool TryGetBool(DriverEntityValue? value, out bool result)
+        {
+            if (value == null)
+            {
+                result = default;
+                return false;
+            }
+
+            var raw = value.GetValue<object>();
+            if (raw == null)
+            {
+                result = default;
+                return false;
+            }
+
+            try
+            {
+                result = Convert.ToBoolean(raw);
+                return true;
+            }
+            catch (FormatException)
+            {
+            }
+            catch (InvalidCastException)
+            {
+            }
+
+            result = default;
+            return false;
+        }
+
+        private static bool TryGetString(DriverEntityValue? value, out string result)
+        {
+            if (value == null)
+            {
+                result = string.Empty;
+                return false;
+            }
+
+            var raw = value.GetValue<object>();
+            if (raw == null)
+            {
+                result = string.Empty;
+                return false;
+            }
+
+            if (raw is string str)
+            {
+                result = str;
+                return true;
+            }
+
+            try
+            {
+                var converted = Convert.ToString(raw);
+                if (converted == null)
+                {
+                    result = string.Empty;
+                    return false;
+                }
+
+                result = converted;
+                return true;
+            }
+            catch (FormatException)
+            {
+            }
+            catch (InvalidCastException)
+            {
+            }
+
+            result = string.Empty;
+            return false;
+        }
+
+        private static bool TryGetUInt16(DriverEntityValue? value, out ushort result)
+        {
+            if (value == null)
+            {
+                result = default;
+                return false;
+            }
+
+            var raw = value.GetValue<object>();
+            if (raw == null)
+            {
+                result = default;
+                return false;
+            }
+
+            try
+            {
+                result = Convert.ToUInt16(raw);
+                return true;
+            }
+            catch (FormatException)
+            {
+            }
+            catch (InvalidCastException)
+            {
+            }
+            catch (OverflowException)
+            {
+            }
+
+            result = default;
+            return false;
         }
 
         private void GatewayOnConnectionStateChanged(object sender, bool e)
